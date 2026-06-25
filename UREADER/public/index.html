@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UREADER</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1>UREADER</h1>
+    <p>Your Modern Reading App</p>
+  </header>
+
+  <main>
+    <section class="upload-section">
+      <h2>Upload a file to read</h2>
+      <input type="file" id="fileInput" accept=".txt,.md,.html">
+      <button id="loadBtn">Load</button>
+    </section>
+
+    <section class="reader-section" id="readerSection" style="display:none;">
+      <div class="reader-controls">
+        <button id="fontUp">A+</button>
+        <button id="fontDown">A-</button>
+        <button id="toggleTheme">Toggle Theme</button>
+      </div>
+      <article id="content" class="reader-content"></article>
+    </section>
+  </main>
+
+  <footer>
+    <p>UREADER &copy; 2026</p>
+  </footer>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const loadBtn = document.getElementById('loadBtn');
+    const readerSection = document.getElementById('readerSection');
+    const content = document.getElementById('content');
+    const fontUp = document.getElementById('fontUp');
+    const fontDown = document.getElementById('fontDown');
+    const toggleTheme = document.getElementById('toggleTheme');
+
+    let fontSize = 18;
+
+    loadBtn.addEventListener('click', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        content.textContent = e.target.result;
+        readerSection.style.display = 'block';
+      };
+      reader.readAsText(file);
+    });
+
+    fontUp.addEventListener('click', () => {
+      fontSize += 2;
+      content.style.fontSize = fontSize + 'px';
+    });
+
+    fontDown.addEventListener('click', () => {
+      if (fontSize > 10) fontSize -= 2;
+      content.style.fontSize = fontSize + 'px';
+    });
+
+    toggleTheme.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+    });
+  </script>
+</body>
+</html>
