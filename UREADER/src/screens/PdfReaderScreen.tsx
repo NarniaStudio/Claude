@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import Pdf from 'react-native-pdf';
+import { WebView } from 'react-native-webview';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { updateReadingProgress } from '../store/bookSlice';
@@ -13,6 +13,38 @@ import { getTheme } from '../theme';
 import { ReaderTheme } from '../types';
 
 const { width, height } = Dimensions.get('window');
+
+const getPdfViewerHtml = (uri: string, bgColor: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: ${bgColor}; width: 100vw; height: 100vh; overflow: hidden; }
+    #viewer { width: 100%; height: 100%; }
+    iframe { border: none; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <iframe id="viewer" src="${uri}"></iframe>
+  <script>
+    document.addEventListener('click', function(e) {
+      var w = window.innerWidth;
+      var x = e.clientX;
+      if (x < w * 0.3) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'prev' }));
+      } else if (x > w * 0.7) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'next' }));
+      } else {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'toggleMenu' }));
+      }
+    });
+  </script>
+</body>
+</html>
+`;
 
 export const PdfReaderScreen: React.FC<{ route: any; navigation: any }> = ({
   route, navigation,
@@ -29,27 +61,26 @@ export const PdfReaderScreen: React.FC<{ route: any; navigation: any }> = ({
   const [currentPage, setCurrentPage] = useState(book?.currentPage || 1);
   const [totalPages, setTotalPages] = useState(book?.totalPages || 0);
   const [isTtsPlaying, setIsTtsPlaying] = useState(false);
-  const pdfRef = useRef<any>(null);
 
   const { isPageBookmarked, togglePageBookmark } = useBookmarks(bookId);
 
-  const handlePageChanged = useCallback((page: number, numberOfPages: number) => {
-    setCurrentPage(page);
-    setTotalPages(numberOfPages);
-    const progress = Math.round((page / numberOfPages) * 100);
-    if (book) {
-      dispatch(updateReadingProgress({
-        bookId: book.id,
-        currentPage: page,
-        progress,
-      }));
-    }
-  }, [book, dispatch]);
-
-  const handleLoadComplete = useCallback((numberOfPages: number) => {
-    setTotalPages(numberOfPages);
-    if (book) {
-      dispatch(startSession({ bookId: book.id, startPage: book.currentPage || 1 }));
+  const handleMessage = useCallback((event: any) => {
+    const data = JSON.parse(event.nativeEvent.data);
+    switch (data.type) {
+      case 'toggleMenu':
+        setIsMenuVisible(prev => !prev);
+        break;
+      case 'pageChanged':
+        setCurrentPage(data.page);
+        setTotalPages(data.total);
+        if (book) {
+          dispatch(updateReadingProgress({
+            bookId: book.id,
+            currentPage: data.page,
+            progress: Math.round((data.page / data.total) * 100),
+          }));
+        }
+        break;
     }
   }, [book, dispatch]);
 
@@ -59,20 +90,15 @@ export const PdfReaderScreen: React.FC<{ route: any; navigation: any }> = ({
 
   return (
     <View style={[styles.container, { backgroundColor: theme.reader.background }]}>
-      <Pdf
-        ref={pdfRef}
-        source={{ uri: book.fileUri }}
-        page={book.currentPage || 1}
-        onPageChanged={handlePageChanged}
-        onLoadComplete={handleLoadComplete}
-        onPageSingleTap={() => setIsMenuVisible(prev => !prev)}
-        enablePaging={!readerSettings.scrollMode}
-        horizontal={!readerSettings.scrollMode}
-        enableAntialiasing
-        enableAnnotationRendering
-        fitPolicy={0}
-        spacing={readerSettings.scrollMode ? 8 : 0}
-        style={[styles.pdf, { backgroundColor: theme.reader.background }]}
+      <WebView
+        source={{ html: getPdfViewerHtml(book.fileUri, theme.reader.background) }}
+        onMessage={handleMessage}
+        originWhitelist={['*']}
+        allowFileAccess
+        allowFileAccessFromFileURLs
+        allowUniversalAccessFromFileURLs
+        javaScriptEnabled
+        style={styles.webview}
       />
 
       <ReaderToolbar
@@ -117,7 +143,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  pdf: {
+  webview: {
     flex: 1,
     width,
     height,

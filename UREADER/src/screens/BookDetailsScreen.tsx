@@ -143,7 +143,7 @@ export const BookDetailsScreen: React.FC<{ route: any; navigation: any }> = ({
         <DetailRow label="עמוד נוכחי" value={`${book.currentPage || '—'}`} theme={theme} />
         <DetailRow label="נוסף" value={formatDate(book.addedAt)} theme={theme} />
         <DetailRow label="נקרא לאחרונה" value={book.lastReadAt ? formatDate(book.lastReadAt) : '—'} theme={theme} />
-        {book.publisher && <DetailRow label="מו\"ל" value={book.publisher} theme={theme} />}
+        {book.publisher && <DetailRow label={'מו"ל'} value={book.publisher} theme={theme} />}
         {book.isbn && <DetailRow label="ISBN" value={book.isbn} theme={theme} />}
       </View>
 

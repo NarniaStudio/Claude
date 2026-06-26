@@ -4,7 +4,7 @@
     "slug": "ureader",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./src/assets/icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
       "backgroundColor": "#1a1a2e"
@@ -22,10 +22,11 @@
     },
     "plugins": [
       "expo-document-picker",
-      "expo-file-system",
       "expo-font",
-      "expo-screen-orientation",
-      "expo-keep-awake"
-    ]
+      "expo-screen-orientation"
+    ],
+    "web": {
+      "bundler": "metro"
+    }
   }
 }

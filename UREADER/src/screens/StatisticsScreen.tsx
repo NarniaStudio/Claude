@@ -105,7 +105,7 @@ export const StatisticsScreen: React.FC<{ navigation: any }> = ({ navigation }) 
             theme={theme}
           />
           <StatBox
-            label="סה\"כ עמודים"
+            label={'סה"כ עמודים'}
             value={`${stats.totalPagesRead}`}
             theme={theme}
           />
