@@ -1,12 +1,13 @@
-const CACHE_NAME = 'ureader-v1';
+const CACHE_NAME = 'ureader-v2';
+const BASE = '/Claude/';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll([
-        '/',
-        '/index.html',
-        '/manifest.json',
+        BASE,
+        BASE + 'index.html',
+        BASE + 'manifest.json',
       ]);
     })
   );
