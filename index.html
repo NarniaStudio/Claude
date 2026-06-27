@@ -42,6 +42,12 @@
   <script src="/Claude/_expo/static/js/web/AppEntry-6034246c4e10d5cffa54d1b607d1e706.js" defer></script>
   <script>
     if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        registrations.forEach(function(reg) { reg.unregister(); });
+      });
+      caches.keys().then(function(names) {
+        names.forEach(function(name) { caches.delete(name); });
+      });
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/Claude/sw.js');
       });
